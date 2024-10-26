@@ -1,5 +1,5 @@
 # Stage 1: Build stage
-FROM python:3.9-slim-bullseye AS builder
+FROM python:3.14-rc-slim AS builder
 
 # Set working directory
 WORKDIR /app
@@ -14,7 +14,7 @@ RUN python -m venv /opt/venv && \
     pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Runtime stage
-FROM python:3.9-slim-bullseye
+FROM python:3.14-rc-slim
 
 # Create a non-root user and set the working directory
 RUN useradd -m eliud
