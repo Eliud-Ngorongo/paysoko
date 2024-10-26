@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Time Finder</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Find Current Time in a City</h1>
+        <div class="form-group">
+            <input type="text" id="cityInput" class="form-control" placeholder="Enter city name">
+        </div>
+        <button id="searchBtn" class="btn btn-primary">Search</button>
+        <div id="result" class="mt-3"></div>
+    </div>
+
+    <script>
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const city = document.getElementById('cityInput').value;
+            const response = await fetch(`http://backend:5000/api/time?city=${encodeURIComponent(city)}`);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                document.getElementById('result').innerText = errorData.error;
+                return;
+            }
+
+            const data = await response.json();
+            document.getElementById('result').innerText = `Current time in ${data.city}: ${data.current_time}`;
+        });
+    </script>
+    <script>
+      document.getElementById('searchBtn').addEventListener('click', async () => {
+          const city = document.getElementById('cityInput').value;
+          console.log(`Searching for city: ${city}`);  // Log the searched city
+  
+          const response = await fetch(`http://backend:5000/api/time?city=${encodeURIComponent(city)}`);
+  
+          if (!response.ok) {
+              const errorData = await response.json();
+              console.error('Error fetching time:', errorData);  // Log the error data
+              document.getElementById('result').innerText = errorData.error;
+              return;
+          }
+  
+          const data = await response.json();
+          console.log('Response data:', data);  // Log the received data
+          document.getElementById('result').innerText = `Current time in ${data.city}: ${data.current_time}`;
+      });
+  </script>
+  
+</body>
+</html>
