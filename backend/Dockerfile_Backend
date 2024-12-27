@@ -1,0 +1,30 @@
+# Stage 1: Build stage
+FROM python:3.14-rc-slim AS builder
+
+WORKDIR /app
+
+COPY requirements.txt .
+
+RUN python -m venv /opt/venv && \
+    . /opt/venv/bin/activate && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+FROM python:3.14-rc-slim
+
+RUN useradd -m eliud
+WORKDIR /app
+
+COPY --from=builder /opt/venv /opt/venv
+
+COPY . .
+
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN chown -R eliud /app
+
+EXPOSE 5000
+
+USER eliud
+
+CMD ["python", "app.py"]

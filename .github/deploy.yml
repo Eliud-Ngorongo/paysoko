@@ -1,0 +1,71 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    # Set up AWS CLI (to authenticate with ECR for pulling images)
+    - name: Set up AWS CLI
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-west-2
+
+    # Set up kubectl to authenticate with your Kubernetes cluster
+    - name: Set up Kubernetes credentials
+      uses: aws-actions/eks-auth@v1
+      with:
+        cluster-name: paysoko
+
+    # Install Helm
+    - name: Install Helm
+      run: |
+        curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+    # Deploy Prometheus with Helm
+    - name: Deploy Prometheus using Helm
+      run: |
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        helm repo update
+        helm upgrade --install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+
+    # Deploy Grafana with Helm
+    - name: Deploy Grafana using Helm
+      run: |
+        helm repo add grafana https://grafana.github.io/helm-charts
+        helm repo update
+        helm upgrade --install grafana grafana/grafana --namespace monitoring --create-namespace
+
+    # Deploy secrets to Kubernetes
+    - name: Apply Kubernetes Secrets
+      run: |
+        kubectl apply -f k8s/secrets.yaml
+
+    # Deploy the Frontend
+    - name: Deploy Frontend Application
+      run: |
+        kubectl apply -f k8s/paysoko_frontend_deployment.yaml
+
+    # Deploy the Backend
+    - name: Deploy Backend Application
+      run: |
+        kubectl apply -f k8s/paysoko_backend_deployment.yaml
+
+    # Monitor Deployment Status
+    - name: Wait for Backend Deployment to complete
+      run: |
+        kubectl rollout status deployment/paysoko-backend
+
+    - name: Wait for Frontend Deployment to complete
+      run: |
+        kubectl rollout status deployment/paysoko-frontend

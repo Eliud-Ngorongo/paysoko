@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paysoko_backend-deployment
+  labels:
+    app: paysoko_backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: paysoko_backend
+  template:
+    metadata:
+      labels:
+        app: paysoko_backend
+    spec:
+      containers:
+      - name: paysoko_backend
+        image: 123456789012.dkr.ecr.us-west-2.amazonaws.com/backend:latest
+        env:
+        - name: MONGO_URI
+          valueFrom:
+            secretKeyRef:
+              name: paysoko-backend-secrets
+        ports:
+        - containerPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paysoko_backend-service
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 5000
+  selector:
+    app: paysoko_backend

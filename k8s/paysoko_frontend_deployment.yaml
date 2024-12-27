@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paysoko_frontend-deployment
+  labels:
+    app: paysoko_frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: paysoko_frontend
+  template:
+    metadata:
+      labels:
+        app: paysoko_frontend
+    spec:
+      containers:
+      - name: paysoko_frontend
+        image: 123456789012.dkr.ecr.us-west-2.amazonaws.com/paysoko_frontend:latest
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paysoko_frontend-service
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    targetPort: 3000
+    nodePort: 30080
+  selector:
+    app: paysoko_frontend
